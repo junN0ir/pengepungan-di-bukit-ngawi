@@ -1,22 +1,20 @@
 using UnityEngine;
-using System.Collections;
 
 public class InteractableRitual : Interactable
 {
     [Header("Ritual Settings")]
-    public float waktuBakar = 2f;
+    public bool sudahTerbakar = false;
+    public int markerIndex = 0;
 
-    [Header("Audio")]
-    public AudioSource audioSource;
-    public AudioClip burnSound;
+    [Header("Efek")]
+    public GameObject objekApi;
 
-    private bool sudahHancur = false;
     private Renderer rend;
 
     public override (string, string) GetData()
     {
-        if (sudahHancur)
-            return ("Simbol Ritual", "Sudah hancur");
+        if (sudahTerbakar)
+            return ("Simbol Ritual", "Sudah terbakar");
 
         if (RitualManager.Instance != null)
         {
@@ -33,54 +31,33 @@ public class InteractableRitual : Interactable
     {
         base.Start();
         rend = GetComponent<Renderer>();
+        if (objekApi != null) objekApi.SetActive(false);
     }
 
     public override void OnInteract()
     {
-        if (sudahHancur) return;
+        if (sudahTerbakar) return;
 
         if (RitualManager.Instance == null)
         {
-            Debug.LogError("RitualManager tidak ditemukan di scene!");
+            Debug.LogError("RitualManager tidak ditemukan!");
             return;
         }
 
-        if (!RitualManager.Instance.hasBensin)
-        {
-            Debug.Log("Belum punya bensin!");
-            OnInteractFailed();
-            return;
-        }
-
-        if (!RitualManager.Instance.hasKorek)
-        {
-            Debug.Log("Belum punya korek!");
-            OnInteractFailed();
-            return;
-        }
+        if (!RitualManager.Instance.hasBensin) { OnInteractFailed(); return; }
+        if (!RitualManager.Instance.hasKorek) { OnInteractFailed(); return; }
 
         base.OnInteract();
-        StartCoroutine(ProsesBakar());
-    }
 
-    IEnumerator ProsesBakar()
-    {
-        sudahHancur = true;
-        Debug.Log("Ritual mulai terbakar...");
+        if (objekApi != null) objekApi.SetActive(true);
 
-        if (audioSource != null && burnSound != null)
-            audioSource.PlayOneShot(burnSound);
-
-        if (rend != null) rend.material.color = new Color(1f, 0.4f, 0f);
-
-        yield return new WaitForSeconds(waktuBakar / 2);
-
-        if (rend != null) rend.material.color = Color.black;
-
-        yield return new WaitForSeconds(waktuBakar / 2);
-
+        sudahTerbakar = true;
         OnInteractSucceed();
         RitualManager.Instance.RitualHancur();
-        Destroy(gameObject, 0.1f);
+
+        // Matikan marker ritual ini
+        RitualMarker marker = GetComponent<RitualMarker>();
+        if (marker != null)
+            marker.MatikanMarker();
     }
 }

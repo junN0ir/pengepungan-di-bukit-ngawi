@@ -46,7 +46,7 @@ public class AIHunter : MonoBehaviour
 
     private float currentDetectionRadius;
     private float currentDetectionAngle;
-    private bool isChasing = false;
+    public bool isChasing = false;
     private float chaseStartTime;
     private bool isAttack = false;
     private bool wasChasing = false; // New variable to track chase state changes
@@ -55,6 +55,8 @@ public class AIHunter : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+            if (animator == null)
+                animator = GetComponentInChildren<Animator>();
         WanderToNextPoint();
         currentDetectionRadius = defaultDetectionRadius;
         currentDetectionAngle = defaultDetectionAngle;
